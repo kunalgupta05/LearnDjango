@@ -5,12 +5,22 @@ app = Flask(__name__)
 
 api = Api(app)
 
+items = []
 
-class Student(Resource):
+
+class Item(Resource):
     def get(self, name):
-        return {"student": name}
+        for item in items:
+            if item['name'] == name:
+                return item
+        return {'item': None}, 404
+
+    def post(self, name):
+        item = {'name': name, 'price': 12.99}
+        items.append(item)
+        return item, 201   # HTTP status code 201 when some object is created
 
 
-api.add_resource(Student, '/student/<string:name>')
+api.add_resource(Item, '/items/<string:name>')
 
 app.run(port=5000)
