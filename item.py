@@ -38,6 +38,16 @@ class Item(Resource):
 
         data = Item.parser.parse_args()
         item = {'name': name, 'price': data['price']}
+
+        try:
+            self.insert(item)
+        except:
+            return {'message': 'An error occurred while inserting the item'}, 500 # HTTP code for internal server error
+
+        return item, 201   # HTTP status code 201 when some object is created
+
+    @classmethod
+    def insert(cls, item):
         connection = sqlite3.connect('data.db')
         cursor = connection.cursor()
         query = "INSERT INTO items values (?, ?)"
@@ -45,7 +55,6 @@ class Item(Resource):
         cursor.execute(query, (name, price))
         connection.commit()
         connection.close()
-        return item, 201   # HTTP status code 201 when some object is created
 
     def delete(self, name):
         connection = sqlite3.connect('data.db')
@@ -58,13 +67,32 @@ class Item(Resource):
 
     def put(self, name):
         data = Item.parser.parse_args()
-        item = next(filter(lambda x: x['name'] == name, items), None)
+        item = self.find_by_name(name)
+        updated_item = {'name': name, 'price': data['price']}
         if item is None:
-            item = {'name': name, 'price': data['price']}
-            items.append(item)
+            try:
+                self.insert(updated_item)
+            except:
+                return {'message': 'An error occurred while inserting the item'}, \
+                       500  # HTTP code for internal server error
         else:
-            item.update(data)
-        return item
+            try:
+                self.update(updated_item)
+            except:
+                return {'message': 'An error occurred while updating the item'}, \
+                       500  # HTTP code for internal server error
+
+        return updated_item
+
+    @classmethod
+    def update(cls, item):
+        connection = sqlite3.connect('data.db')
+        cursor = connection.cursor()
+        query = "UPDATE items SET price=? WHERE name=?"
+        name, price = item['name'], item['price']
+        cursor.execute(query, (price, name))
+        connection.commit()
+        connection.close()
 
 
 class Items(Resource):
