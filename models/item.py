@@ -19,25 +19,22 @@ class ItemModel(object):
         connection.close()
 
         if row:
-            name, price = row[0], row[1]
-            return {"item": {"name": name, "price": price}}
+            return cls(*row)
 
-    @classmethod
-    def insert(cls, item):
+    def insert(self):
         connection = sqlite3.connect('data.db')
         cursor = connection.cursor()
         query = "INSERT INTO items values (?, ?)"
-        name, price = item['name'], item['price']
+        name, price = self.name, self.price
         cursor.execute(query, (name, price))
         connection.commit()
         connection.close()
 
-    @classmethod
-    def update(cls, item):
+    def update(self):
         connection = sqlite3.connect('data.db')
         cursor = connection.cursor()
         query = "UPDATE items SET price=? WHERE name=?"
-        name, price = item['name'], item['price']
+        name, price = self.name, self.price
         cursor.execute(query, (price, name))
         connection.commit()
         connection.close()

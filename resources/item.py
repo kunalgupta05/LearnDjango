@@ -17,7 +17,7 @@ class Item(Resource):
     def get(self, name):
         item = ItemModel.find_by_name(name)
         if item:
-            return item
+            return item.json()
         return {"message": "Item {} not found".format(name)}, 404
 
     def post(self, name):
@@ -25,14 +25,14 @@ class Item(Resource):
             return {'message': "Item {} already exists".format(name)}, 400  # HTTP status code 400 for bad request
 
         data = Item.parser.parse_args()
-        item = {'name': name, 'price': data['price']}
+        item = ItemModel(name, data['price'])
 
         try:
-            ItemModel.insert(item)
+            item.insert()
         except:
             return {'message': 'An error occurred while inserting the item'}, 500 # HTTP code for internal server error
 
-        return item, 201   # HTTP status code 201 when some object is created
+        return item.json(), 201   # HTTP status code 201 when some object is created
 
     def delete(self, name):
         connection = sqlite3.connect('data.db')
@@ -46,21 +46,21 @@ class Item(Resource):
     def put(self, name):
         data = Item.parser.parse_args()
         item = ItemModel.find_by_name(name)
-        updated_item = {'name': name, 'price': data['price']}
+        updated_item = ItemModel(name, data['price'])
         if item is None:
             try:
-                ItemModel.insert(updated_item)
+                updated_item.insert()
             except:
                 return {'message': 'An error occurred while inserting the item'}, \
                        500  # HTTP code for internal server error
         else:
             try:
-                ItemModel.update(updated_item)
+                updated_item.update()
             except:
                 return {'message': 'An error occurred while updating the item'}, \
                        500  # HTTP code for internal server error
 
-        return updated_item
+        return updated_item.json()
 
 
 class Items(Resource):
