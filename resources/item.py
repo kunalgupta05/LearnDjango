@@ -12,6 +12,10 @@ class Item(Resource):
                         type=float,
                         required=True,
                         help="This field cannot be blank")
+    parser.add_argument('store_id',
+                        type=int,
+                        required=True,
+                        help="Store id cannot be empty")
 
     @jwt_required()
     def get(self, name):
@@ -25,12 +29,12 @@ class Item(Resource):
             return {'message': "Item {} already exists".format(name)}, 400  # HTTP status code 400 for bad request
 
         data = Item.parser.parse_args()
-        item = ItemModel(name, data['price'])
+        item = ItemModel(name, **data)
 
         try:
             item.save_to_db()
         except:
-            return {'message': 'An error occurred while inserting the item'}, 500 # HTTP code for internal server error
+            return {'message': 'An error occurred while inserting the item'}, 500  # HTTP code for internal server error
 
         return item.json(), 201   # HTTP status code 201 when some object is created
 
@@ -46,9 +50,9 @@ class Item(Resource):
         item = ItemModel.find_by_name(name)
 
         if item is None:
-            item = ItemModel(name, data['price'])
+            item = ItemModel(name, **data)
         else:
-            item.price = data['price']
+            item.price, item.store_id = data['price'], data['store_id']
 
         item.save_to_db()
 
