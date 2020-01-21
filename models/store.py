@@ -13,11 +13,12 @@ class StoreModel(db.Model):
         self.name = name
 
     def json(self):
-        return dict(name=self.name, items=[item.json() for item in self.items.all()])
+        return dict(id=self.id, name=self.name, items=[item.json() for item in self.items.all()])
 
     @classmethod
     def find_by_name(cls, name):
-        return cls.query.filter_by(name=name).first()  # SELECT * FROM items WHERE name = name LIMIT 1
+        # SELECT * FROM items WHERE name = name LIMIT 1
+        return cls.query.filter_by(name=name).first()
 
     def save_to_db(self):
         db.session.add(self)
